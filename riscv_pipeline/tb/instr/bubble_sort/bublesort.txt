@@ -1,0 +1,59 @@
+#================================================================================================
+# Program: Insertion Sort (Manual Memory Initialization)
+#================================================================================================
+#RISC-V Assembly                 | Description (with register values)      | Address | Machine Code
+#================================================================================================
+.text
+main:
+  # --- KHỐI LỆNH MỚI: KHỞI TẠO DỮ LIỆU TRONG DATA MEMORY ---
+  addi  x8, x0, 0             # x8 = 0 (Địa chỉ cơ sở của mảng)         | 0x0000  | 00000413
+  # Lưu các phần tử của mảng: 5, 2, 8, 1, 9, 4
+  addi  x5, x0, 5             # x5 = 5
+  sw    x5, 0(x8)             # Mem[0] = 5                             | 0x0004  | 00542023
+  addi  x5, x0, 2             # x5 = 2
+  sw    x5, 4(x8)             # Mem[4] = 2                             | 0x0008  | 00542223
+  addi  x5, x0, 8             # x5 = 8
+  sw    x5, 8(x8)             # Mem[8] = 8                             | 0x000C  | 00542423
+  addi  x5, x0, 1             # x5 = 1
+  sw    x5, 12(x8)            # Mem[12] = 1                            | 0x0010  | 00542623
+  addi  x5, x0, 9             # x5 = 9
+  sw    x5, 16(x8)            # Mem[16] = 9                            | 0x0014  | 00542823
+  addi  x5, x0, 4             # x5 = 4
+  sw    x5, 20(x8)            # Mem[20] = 4                            | 0x0018  | 00542A23
+  # Lưu kích thước mảng
+  addi  x5, x0, 6             # x5 = 6 (kích thước mảng)
+  sw    x5, 24(x8)            # Mem[24] = 6                            | 0x001C  | 00542C23
+  # --- KẾT THÚC KHỐI KHỞI TẠO ---
+
+  # --- LOGIC SẮP XẾP BẮT ĐẦU TỪ ĐÂY (giữ nguyên như cũ) ---
+  addi  x30, x0, 24           # x30 = 24 (Địa chỉ của biến ARRAY_SIZE) | 0x0020  | 01800F13
+  lw    x9, 0(x30)            # x9 = Mem[24] = 6 (Kích thước mảng)     | 0x0024  | 000F2483
+  addi  x5, x0, 1             # x5 = 1 (i = 1, vòng lặp ngoài)         | 0x0028  | 00100293
+outer_loop:
+  bge   x5, x9, 68            # if(i >= size) thì nhảy tới sort_done    | 0x002C  | 0492D263
+  slli  x28, x5, 2            # x28 = i * 4 (Tính offset cho word)     | 0x0030  | 00229E13
+  add   x28, x8, x28          # x28 = &array[i]                        | 0x0034  | 01C40E33
+  lw    x6, 0(x28)            # x6 = key = array[i]                    | 0x0038  | 000E2303
+  addi  x7, x5, -1            # x7 = j = i - 1                         | 0x003C  | FFF28393
+inner_loop:
+  blt   x7, x0, 32            # if(j < 0) thì nhảy tới end_inner_loop | 0x0040  | 0203C063
+  slli  x28, x7, 2            # x28 = j * 4                            | 0x0044  | 00239E13
+  add   x28, x8, x28          # x28 = &array[j]                        | 0x0048  | 01C40E33
+  lw    x29, 0(x28)           # x29 = array[j]                         | 0x004C  | 000E2E83
+  bge   x6, x29, 16           # if(key >= array[j]) nhảy end_inner_loop| 0x0050  | 01D35863
+  # -- Dịch phải phần tử --
+  addi  x28, x28, 4           # x28 = &array[j+1]                      | 0x0054  | 004E0E13
+  sw    x29, 0(x28)           # array[j+1] = array[j]                  | 0x0058  | 01DE2023
+  addi  x7, x7, -1            # j--                                    | 0x005C  | FFF38393
+  jal   x0, -32               # Nhảy về inner_loop                     | 0x0060  | FE1FF06F
+end_inner_loop:
+  # -- Chèn key vào đúng vị trí --
+  slli  x28, x7, 2            # x28 = j * 4                            | 0x0064  | 00239E13
+  add   x28, x8, x28          # x28 = &array[j]                        | 0x0068  | 01C40E33
+  addi  x28, x28, 4           # x28 = &array[j+1]                      | 0x006C  | 004E0E13
+  sw    x6, 0(x28)            # array[j+1] = key                       | 0x0070  | 006E2023
+  addi  x5, x5, 1             # i++                                    | 0x0074  | 00128293
+  jal   x0, -76               # Nhảy về outer_loop                     | 0x0078  | FB5FF06F
+sort_done:
+  addi  x17, x0, 10           # a7 = 10 (mã system call để exit)       | 0x007C  | 00A00893
+  ecall                       # Gọi HĐH để kết thúc chương trình       | 0x0080  | 00000073
